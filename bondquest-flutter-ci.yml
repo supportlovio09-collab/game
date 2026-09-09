@@ -1,0 +1,49 @@
+name: BondQuest Flutter CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'bondquest_2d_ci_ready_v0.2/bondquest_2d/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'bondquest_2d_ci_ready_v0.2/bondquest_2d/**'
+
+jobs:
+  flutter-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bondquest_2d_ci_ready_v0.2/bondquest_2d
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+      
+      - name: Verify Flutter dependencies
+        run: flutter pub get
+      
+      - name: Format source code
+        run: dart format --set-exit-if-changed .
+      
+      - name: Run static analysis
+        run: flutter analyze
+      
+      - name: Run automated gameplay tests
+        run: flutter test --coverage
+      
+      - name: Build Release APK
+        run: flutter build apk --release
+      
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bondquest-2d-release-apk
+          path: bondquest_2d_ci_ready_v0.2/bondquest_2d/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
